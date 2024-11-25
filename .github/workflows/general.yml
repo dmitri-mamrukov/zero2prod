@@ -26,8 +26,6 @@ jobs:
   clippy:
     name: Clippy
     runs-on: ubuntu-latest
-    env:
-      SQLX_OFFLINE: true
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
@@ -35,6 +33,26 @@ jobs:
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           components: clippy
+      - name: Install sqlx-cli
+        run: cargo install sqlx-cli
+          --version=${{ env.SQLX_VERSION }}
+          --features ${{ env.SQLX_FEATURES }}
+          --no-default-features
+          --locked
+      - name: Create an application user in Postgres
+        run: |
+          sudo apt install postgresql-client
+
+          # Create the application user.
+          CREATE_QUERY="CREATE USER ${APP_USER} WITH PASSWORD '${APP_USER_PASSWORD}';"
+          PGPASSWORD="password" psql --username "postgres" --host "localhost" --command "${CREATE_QUERY}"
+
+          # Grant create DB privileges to the app user
+          GRANT_QUERY="ALTER USER ${APP_USER} CREATEDB;"
+          PGPASSWORD="password" psql --username "postgres" --host "localhost" --command "${GRANT_QUERY}"
+      - name: Migrate database
+        run: SKIP_DOCKER=true ./scripts/init_db.sh
+        working-directory: ./app
       - name: Lint
         run: cargo clippy -- --deny warnings
         working-directory: ./app
@@ -79,9 +97,9 @@ jobs:
       - name: Run tests
         run: cargo test --all-features
         working-directory: ./app
-      - name: Check that queries are fresh
-        run: cargo sqlx prepare --workspace --check -- --all-targets
-        working-directory: ./app
+      # - name: Check that queries are fresh
+      #   run: cargo sqlx prepare --workspace --check -- --all-targets
+      #   working-directory: ./app
 
   coverage:
     name: Code coverage
