@@ -35,10 +35,9 @@ jobs:
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           components: clippy
-      - name: Set the working directory
-        run: cd app
       - name: Lint
         run: cargo clippy -- --deny warnings
+        working-directory: ./app
 
   test:
     name: Test
@@ -76,12 +75,12 @@ jobs:
           PGPASSWORD="password" psql --username "postgres" --host "localhost" --command "${GRANT_QUERY}"
       - name: Migrate database
         run: SKIP_DOCKER=true scripts/init_db.sh
-      - name: Set the working directory
-        run: cd app
       - name: Run tests
         run: cargo test --all-features
+        working-directory: ./app
       - name: Check that queries are fresh
         run: cargo sqlx prepare --workspace --check -- --all-targets
+        working-directory: ./app
 
   coverage:
     name: Code coverage
@@ -119,16 +118,17 @@ jobs:
           # Grant create DB privileges to the app user
           GRANT_QUERY="ALTER USER ${APP_USER} CREATEDB;"
           PGPASSWORD="password" psql --username "postgres" --host "localhost" --command "${GRANT_QUERY}"
-      - name: Set the working directory
-        run: cd app
       - name: Migrate database
-        run: SKIP_DOCKER=true scripts/init_db.sh
+        run: SKIP_DOCKER=true ./scripts/init_db.sh
+        working-directory: ./app
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
       - name: Generate code coverage
         run: cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
+        working-directory: ./app
       - name: Generate report
         run: cargo llvm-cov report --html --output-dir coverage
+        working-directory: ./app
       - uses: actions/upload-artifact@v4
         with:
           name: "Coverage report"
