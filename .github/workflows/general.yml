@@ -74,7 +74,7 @@ jobs:
           GRANT_QUERY="ALTER USER ${APP_USER} CREATEDB;"
           PGPASSWORD="password" psql --username "postgres" --host "localhost" --command "${GRANT_QUERY}"
       - name: Migrate database
-        run: SKIP_DOCKER=true scripts/init_db.sh
+        run: SKIP_DOCKER=true ./scripts/init_db.sh
       - name: Run tests
         run: cargo test --all-features
         working-directory: ./app
