@@ -23,15 +23,15 @@ serde = { version = "1", features = ["derive"] }
 uuid = { version = "1.11.0", features = ["v4"] }
 
 [dependencies.sqlx]
-    version = "0.8.2"
-    default-features = false
-    features = [
-        "chrono",
-        "macros",
-        "migrate",
-        "postgres",
-        "runtime-tokio-rustls",
-        "uuid"
+version = "0.8.2"
+default-features = false
+features = [
+    "chrono",
+    "macros",
+    "migrate",
+    "postgres",
+    "runtime-tokio-rustls",
+    "uuid"
 ]
 
 [dev-dependencies]
