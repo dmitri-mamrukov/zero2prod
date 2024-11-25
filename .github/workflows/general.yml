@@ -35,6 +35,8 @@ jobs:
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           components: clippy
+      - name: Set the working directory
+        run: cd app
       - name: Lint
         run: cargo clippy -- --deny warnings
 
@@ -61,7 +63,7 @@ jobs:
           --features ${{ env.SQLX_FEATURES }}
           --no-default-features
           --locked
-      - name: Create app user in Postgres
+      - name: Create an application user in Postgres
         run: |
           sudo apt install postgresql-client
 
@@ -73,7 +75,9 @@ jobs:
           GRANT_QUERY="ALTER USER ${APP_USER} CREATEDB;"
           PGPASSWORD="password" psql --username "postgres" --host "localhost" --command "${GRANT_QUERY}"
       - name: Migrate database
-        run: SKIP_DOCKER=true ./scripts/init_db.sh
+        run: SKIP_DOCKER=true scripts/init_db.sh
+      - name: Set the working directory
+        run: cd app
       - name: Run tests
         run: cargo test --all-features
       - name: Check that queries are fresh
@@ -104,7 +108,7 @@ jobs:
           --features ${{ env.SQLX_FEATURES }}
           --no-default-features
           --locked
-      - name: Create app user in Postgres
+      - name: Create an application user in Postgres
         run: |
           sudo apt install postgresql-client
 
@@ -115,8 +119,10 @@ jobs:
           # Grant create DB privileges to the app user
           GRANT_QUERY="ALTER USER ${APP_USER} CREATEDB;"
           PGPASSWORD="password" psql --username "postgres" --host "localhost" --command "${GRANT_QUERY}"
+      - name: Set the working directory
+        run: cd app
       - name: Migrate database
-        run: SKIP_DOCKER=true ./scripts/init_db.sh
+        run: SKIP_DOCKER=true scripts/init_db.sh
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
       - name: Generate code coverage
