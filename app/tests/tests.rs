@@ -7,6 +7,7 @@ use zero2prod::startup::run;
 
 pub struct TestApp {
     pub address: String,
+    #[allow(dead_code)]
     pub connection_pool: PgPool,
 }
 
