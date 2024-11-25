@@ -16,6 +16,7 @@ curl --verbose http://127.0.0.1:8000/health_check
 To continously watch code by checking and testing it:
 
 ```bash
+cd app
 cargo watch --exec fmt --exec check --exec test --exec run
 ```
 
@@ -24,5 +25,6 @@ cargo watch --exec fmt --exec check --exec test --exec run
 To measure test coverage:
 
 ```bash
+cd app
 cargo tarpaulin --ignore-tests
 ```
