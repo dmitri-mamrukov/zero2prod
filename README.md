@@ -11,6 +11,12 @@ To check the health check handler:
 curl --verbose http://127.0.0.1:8000/health_check
 ```
 
+To check the subscription handler:
+
+```bash
+curl --verbose --include --request POST --data 'email=thomas_mann@hotmail.com&name=Tom' http://127.0.0.1:8000/subscriptions
+```
+
 ## Development
 
 ### Scripts
