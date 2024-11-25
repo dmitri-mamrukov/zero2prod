@@ -14,7 +14,8 @@ curl --verbose http://127.0.0.1:8000/health_check
 To check the subscription handler:
 
 ```bash
-curl --verbose --include --request POST --data 'email=thomas_mann@hotmail.com&name=Tom' http://127.0.0.1:8000/subscriptions
+curl --verbose --include --request POST --data \
+    'email=thomas_mann@hotmail.com&name=Tom' http://127.0.0.1:8000/subscriptions
 ```
 
 ## Development
@@ -67,6 +68,13 @@ To continously watch code by formatting, checking, and testing it:
 ```bash
 cd app
 cargo watch --exec fmt --exec check --exec test --exec run
+```
+
+To test with getting detailed and prettified output:
+
+```bash
+cd app
+TEST_LOG=true cargo test health_check | bunyan
 ```
 
 ### Test coverage
