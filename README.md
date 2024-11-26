@@ -20,6 +20,13 @@ curl --verbose --include --request POST --data \
 
 ## Development
 
+### Lint
+
+```bash
+cd app
+./scripts/lint.sh
+```
+
 ### Scripts
 
 To create a Docker Postgres container and then to create and populate its DB:
@@ -63,11 +70,11 @@ newsletter=# SELECT * FROM _sqlx_migrations;
 
 ### Tests
 
-To continously watch code by formatting, checking, and testing it:
+To continously watch code by formatting, checking, linting, and testing it:
 
 ```bash
 cd app
-cargo watch --exec fmt --exec check --exec test --exec run
+./scripts/watch.sh
 ```
 
 To test with getting detailed and prettified output:
