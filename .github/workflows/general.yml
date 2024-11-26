@@ -63,7 +63,7 @@ jobs:
         run: SKIP_DOCKER=true ./scripts/init_db.sh
         working-directory: ./app
       - name: Lint
-        run: cargo clippy -- --deny warnings
+        run: cargo clippy --tests --all-features -- --deny warnings
         working-directory: ./app
 
   test:
