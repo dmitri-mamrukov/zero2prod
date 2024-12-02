@@ -92,3 +92,38 @@ To measure test coverage:
 cd app
 cargo tarpaulin --ignore-tests
 ```
+
+### slqx
+
+'prepare' performs the same work that is usually done when cargo build is
+invoked but it saves the outcome of those queries to a metadata file
+(.slx/query-<id>.json) which can later be detected by sqlx itself and used to skip the
+queries altogether and perform an offline build.
+
+```bash
+cargo sqlx prepare -- --lib
+```
+
+We ensure that sqlx-data.json does not go out of sync (e.g. when the schema of
+our database changes or when we add new queries).
+
+```bash
+cargo sqlx prepare --check -- --lib
+```
+
+### Docker
+
+In one console:
+
+```bash
+docker build --tag zero2prod --file Dockerfile .
+docker run --publish 8000:8000 zero2prod
+```
+
+In another console:
+
+```bash
+curl --verbose http://127.0.0.1:8000/health_check
+curl --verbose --include --request POST --data \
+    'email=thomas_mann@hotmail.com&name=Tom' http://127.0.0.1:8000/subscriptions
+```
