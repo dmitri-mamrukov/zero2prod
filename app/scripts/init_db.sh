@@ -10,10 +10,6 @@ fi
 
 if ! [ -x "$(command -v sqlx)" ]; then
     echo >&2 "Error: sqlx is not installed."
-    echo >&2 "Use:"
-    echo >&2 "    cargo install sqlx-cli \
-    --no-default-features --features rustls,postgres"
-    echo >&2 "to install it."
     exit 1
 fi
 
@@ -31,12 +27,12 @@ then
         --env POSTGRES_DB=${DB_NAME} \
         --publish "${DB_PORT}":5432 \
         --detach \
-        --name zero2prod-postgres \
+        --name local-zero2prod-postgres \
         postgres -N 1000
 fi
 
 export PGPASSWORD="${DB_PASSWORD}"
-until psql --host "${DB_HOST}" --username "${DB_USER}" --port "${DB_PORT}" --dbname "postgres" --command '\q'; do
+until psql --host "${DB_HOST}" --port "${DB_PORT}" --username "${DB_USER}" --dbname "postgres" --command '\q'; do
     >&2 echo "Postgres is still unavailable - sleeping"
     sleep 1
 done
