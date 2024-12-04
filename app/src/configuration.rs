@@ -1,12 +1,17 @@
 use secrecy::{ExposeSecret as _, SecretBox};
 
-/// The possible runtime environment for our application.
+/// An enum that enumerates possible runtime environments for our application.
 pub enum Environment {
     Local,
     Production,
 }
 
 impl Environment {
+    /// Converts the 'Environment' value to a str.
+    ///
+    /// # Arguments
+    ///
+    /// * `self` - The self reference.
     pub fn as_str(&self) -> &'static str {
         match self {
             Environment::Local => "local",
@@ -31,22 +36,36 @@ impl TryFrom<String> for Environment {
     }
 }
 
+/// A struct that represents our settings.
 #[derive(serde::Deserialize)]
 pub struct Settings {
+    /// Database settings.
     pub database: DatabaseSettings,
+    /// Application settings.
     pub application: ApplicationSettings,
 }
 
+/// A struct that represents our database's settings.
 #[derive(serde::Deserialize)]
 pub struct DatabaseSettings {
+    /// A username.
     pub username: String,
+    /// A password.
     pub password: SecretBox<String>,
+    /// A port.
     pub port: u16,
+    /// A host.
     pub host: String,
+    /// A database name.
     pub database_name: String,
 }
 
 impl DatabaseSettings {
+    /// Gets a connection string.
+    ///
+    /// # Arguments
+    ///
+    /// * `self` - The self reference.
     pub fn connection_string(&self) -> SecretBox<String> {
         SecretBox::new(Box::new(format!(
             "postgres://{}:{}@{}:{}/{}",
@@ -58,6 +77,11 @@ impl DatabaseSettings {
         )))
     }
 
+    /// Gets a connection string without the database name part.
+    ///
+    /// # Arguments
+    ///
+    /// * `self` - The self reference.
     pub fn connection_string_without_db(&self) -> SecretBox<String> {
         SecretBox::new(Box::new(format!(
             "postgres://{}:{}@{}:{}",
@@ -69,12 +93,16 @@ impl DatabaseSettings {
     }
 }
 
+/// A struct that represents our application's settings.
 #[derive(serde::Deserialize)]
 pub struct ApplicationSettings {
+    /// A port.
     pub port: u16,
+    /// A host.
     pub host: String,
 }
 
+/// Gets configuration.
 pub fn get_configuration() -> Result<Settings, config::ConfigError> {
     let base_path = std::env::current_dir().expect("Failed to determine current directory");
     let configuration_directory = base_path.join("configuration");

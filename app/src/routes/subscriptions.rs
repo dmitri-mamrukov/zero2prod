@@ -3,12 +3,19 @@ use chrono::Utc;
 use sqlx::PgPool;
 use uuid::Uuid;
 
+/// A struct that represents form data that come with subscription requests.
 #[derive(serde::Deserialize)]
 pub struct FormData {
     email: String,
     name: String,
 }
 
+/// Handles subscription requests.
+///
+/// # Arguments
+///
+/// * `form` - Form data.
+/// * `connection_pool` - A Postgres connection pool.
 #[tracing::instrument(
     name = "Adding a new subscriber",
     skip(form, connection_pool),

@@ -6,6 +6,12 @@ use tracing_actix_web::TracingLogger;
 
 use crate::routes::{health_check, subscribe};
 
+/// Runs our application, given a TCP listener and Posgres connection pool.
+///
+/// # Arguments
+///
+/// * `listener` - A TCP listener.
+/// * `connection_pool` - A Posgres connection pool.
 pub fn run(listener: TcpListener, connection_pool: PgPool) -> Result<Server, std::io::Error> {
     let connection_pool = web::Data::new(connection_pool);
     let server = HttpServer::new(move || {

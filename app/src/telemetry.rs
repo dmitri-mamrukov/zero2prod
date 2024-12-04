@@ -13,18 +13,24 @@ use tracing_subscriber::{layer::SubscriberExt as _, EnvFilter, Registry};
 /// indeed quite complex.
 ///
 /// We need to explicitly call out that the returned subscriber is
-/// `Send` and `Sync` to make it possible to pass it to `init_subscriber`
+/// `Send` and `Sync` to make it possible to pass it to `init_tracing_subscriber`
 /// later on.
+///
+/// # Arguments
+///
+/// * `name` - A layer name.
+/// * `environment_filter` - An environment filter.
+/// * `sink` - A sink.
 pub fn get_tracing_subscriber<Sink>(
     name: String,
-    env_filter: String,
+    environment_filter: String,
     sink: Sink,
 ) -> impl Subscriber + Send + Sync
 where
     Sink: for<'a> MakeWriter<'a> + Send + Sync + 'static,
 {
     let env_filter =
-        EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(env_filter));
+        EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(environment_filter));
     let formatting_layer = BunyanFormattingLayer::new(name, sink);
 
     Registry::default()
@@ -35,7 +41,11 @@ where
 
 /// Registers a tracing's subscriber as a global default to process span data.
 ///
-/// It should only be called once!
+/// Note: This function should be called only once!
+///
+/// # Arguments
+///
+/// * `subscriber` - A tracing subscriber.
 pub fn init_tracing_subscriber(subscriber: impl Subscriber + Send + Sync) {
     LogTracer::init().expect("Failed to set logger");
     set_global_default(subscriber).expect("Failed to set subscriber");
