@@ -1,0 +1,23 @@
+FROM rust:1.83.0-bullseye AS rust
+
+ENV SQLX_VERSION=0.8.2
+ENV SQLX_FEATURES="rustls,postgres"
+RUN cargo install sqlx-cli \
+    --version=$SQLX_VERSION \
+    --features $SQLX_FEATURES \
+    --no-default-features \
+    --locked
+
+RUN apt update && apt install postgresql-client --yes \
+    && apt autoremove --yes \
+    && apt clean --yes \
+    && rm --recursive --force /var/lib/apt/lists/*
+
+WORKDIR /app
+COPY ./scripts/init_db.sh ./scripts/init_db.sh
+COPY ./migrations ./migrations
+
+ENV SKIP_DOCKER=true
+ENV POSTGRES_HOST=zero2prod-postgres
+
+ENTRYPOINT ["./scripts/init_db.sh"]

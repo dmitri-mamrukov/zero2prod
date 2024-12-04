@@ -1,6 +1,6 @@
 .env
-Dockerfile
-scripts/
-migrations/
+Dockerfile.*
+pgdata/
+scripts-dev
 target/
 tests/

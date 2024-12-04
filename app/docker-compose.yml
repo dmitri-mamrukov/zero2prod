@@ -1,0 +1,40 @@
+services:
+  db:
+    image: postgres:17
+    container_name: zero2prod-postgres
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: newsletter
+      PGDATA: /var/lib/postgresql/data/pgdata
+    healthcheck:
+      test: ["CMD", "pg_isready", "--username", "postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data/pgdata
+
+  db-init:
+    image: zero2prod-db-init
+    container_name: zero2prod-db-init
+    depends_on:
+      db:
+        condition: service_healthy
+
+  app:
+    image: zero2prod-app
+    container_name: zero2prod-app
+    depends_on:
+      db:
+        condition: service_healthy
+      db-init:
+        condition: service_started
+    ports:
+      - 8000:8000
+
+volumes:
+  pgdata:
+    driver: local
