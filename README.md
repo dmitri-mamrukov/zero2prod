@@ -1,105 +1,13 @@
 # Zero To Production In Rust
 
-It is my project based on the *"Zero To Production In Rust A hands-on introduction
-to backend development in Rust"* book by Luca Palmieri.
+It is my project based on the *"Zero To Production In Rust A hands-on
+introduction to backend development in Rust"* book by Luca Palmieri.
 
-## Functional Tests
+## Application Development and Usage
 
-To check the health check handler:
+### Prerequisites
 
-```bash
-curl --verbose http://127.0.0.1:8000/health_check
-```
-
-To check the subscription handler:
-
-```bash
-curl --verbose --include --request POST --data \
-    'email=thomas_mann@hotmail.com&name=Tom' http://127.0.0.1:8000/subscriptions
-```
-
-## Development
-
-### Lint
-
-```bash
-cd app
-./scripts-dev/lint.sh
-```
-
-### Scripts
-
-To create a Docker Postgres container and then to create and populate its DB:
-
-```bash
-cd app
-scripts/init_db.sh
-```
-
-To create and populate the Postgres DB, skipping the Docker container creation:
-
-```bash
-cd app
-SKIP_DOCKER=true scripts/init_db.sh
-```
-
-To stop and remove the Docker Postgres container named `local-zero2prod-postgres`:
-
-```bash
-docker container stop local-zero2prod-postgres
-docker container start local-zero2prod-postgres
-docker container rm local-zero2prod-postgres
-```
-
-### Postgres
-
-Connect to Postgres. The password is in `scripts/init_db.sh`.
-
-```bash
-psql --host "localhost" --username "postgres" --port 5432
-```
-
-Show tables.
-
-```bash
-postgres=# \c newsletter
-newsletter=# \dn
-newsletter=# \dt
-newsletter=# SELECT * FROM subscriptions;
-newsletter=# SELECT * FROM _sqlx_migrations;
-```
-
-### Tests
-
-To continously watch code by formatting, checking, linting, and testing it:
-
-```bash
-cd app
-./scripts-dev/watch.sh
-```
-
-Note: When upgrading the Rust compiler, you may get
-"Error: I/O error: Permission denied (os error 13)" errors, when you run
-`watch.sh`. In this case, do `cargo clean && cargo build` before running
-`watch.sh` again.
-
-To test with getting detailed and prettified output:
-
-```bash
-cd app
-TEST_LOG=true cargo test health_check | bunyan
-```
-
-### Test Coverage
-
-To measure test coverage:
-
-```bash
-cd app
-cargo tarpaulin --ignore-tests
-```
-
-### slqx
+#### slqx
 
 Installation:
 
@@ -131,52 +39,161 @@ cd app
 cargo sqlx prepare --check -- --lib
 ```
 
-### Docker
+### Option 1: Start from Scratch
 
-#### Option 1
+1. There might be a Docker Postgres container named `local-zero2prod-postgres`
+   from prior development. Check with
 
-In one console:
+    ```bash
+    docker ps --all
+    ```
+
+    ```bash
+    docker container stop local-zero2prod-postgres
+    docker container rm local-zero2prod-postgres
+    ```
+
+2. To create a Docker Postgres container and then to create and populate its DB:
+
+    ```bash
+    cd app
+    scripts/init_db.sh
+    ```
+
+    If needed, to create and populate the Postgres DB, skipping the Docker
+    container creation:
+
+    ```bash
+    cd app
+    SKIP_DOCKER=true scripts/init_db.sh
+    ```
+
+3. Continue with step 2 in `Option 2: Continue with Existing Containers`.
+
+### Option 2: Continue with Existing Containers
+
+1. To start the Docker Postgres container named `local-zero2prod-postgres`:
+
+    ```bash
+    docker container start local-zero2prod-postgres
+    ```
+
+2. To lint your code:
+
+    ```bash
+    cd app
+    ./scripts-dev/lint.sh
+    ```
+
+3. To continously watch code by formatting, checking, linting, and testing it:
+
+    ```bash
+    cd app
+    ./scripts-dev/watch.sh
+    ```
+
+    Note: When upgrading the Rust compiler, you may get
+    "Error: I/O error: Permission denied (os error 13)" errors, when you run
+    `watch.sh`. In this case, do `cargo clean && cargo build` before running
+    `watch.sh` again. If this doesn't help, then in the parent folder of
+    `zero2prod` do:
+
+    ```bash
+    sudo chown --recursive <user> zero2prod
+    ```
+
+    where `<user>` is you.
+
+4. To test with getting detailed and prettified output:
+
+    ```bash
+    cd app
+    TEST_LOG=true cargo test health_check | bunyan
+    ```
+
+5. To measure test coverage:
+
+    ```bash
+    cd app
+    cargo tarpaulin --ignore-tests
+    ```
+
+6. To build Docker containers:
+
+    End the execution of `./scripts-dev/watch.sh` as it uses the application's
+    port. Also shutdown the `local-zero2prod-postgres` container.
+
+    ```bash
+    docker container stop local-zero2prod-postgres
+    ```
+
+    In one console:
+
+    ```bash
+    cd app
+    docker build --no-cache --tag zero2prod-app --file Dockerfile.app .
+    docker build --no-cache --tag zero2prod-db-init --file Dockerfile.db-init .
+    docker compose --file docker-compose.yml up --build
+    ```
+
+    Or
+
+    ```bash
+    cd app
+    docker compose --file docker-compose.yml build --no-cache
+    docker compose --file docker-compose.yml up --build
+    ```
+
+    In another console:
+
+    ```bash
+    cd app
+    curl --verbose http://127.0.0.1:8000/health_check
+    curl --verbose --include --request POST \
+        --data 'email=thomas_mann@hotmail.com&name=Tom' \
+        http://127.0.0.1:8000/subscriptions
+    ```
+
+    In another console:
+
+    ```bash
+    cd app
+    docker compose --file docker-compose.yml down
+    docker compose --file docker-compose.yml down --volumes
+    ```
+
+## Development
+
+### Postgres
+
+Connect to Postgres. The password is in `scripts/init_db.sh`.
 
 ```bash
-cd app
-docker build --tag zero2prod-app --file Dockerfile .
-docker run --publish 8000:8000 zero2prod
+psql --host "localhost" --username "postgres" --port 5432
 ```
 
-In another console:
+Show schemas and tables in the `newsletter` database:
 
 ```bash
-cd app
+postgres=# \c newsletter
+newsletter=# \dn
+newsletter=# \dt
+newsletter=# SELECT * FROM subscriptions;
+newsletter=# SELECT * FROM _sqlx_migrations;
+```
+
+## Functional Tests
+
+To check the health check handler:
+
+```bash
 curl --verbose http://127.0.0.1:8000/health_check
-curl --verbose --include --request POST --data \
-    'email=thomas_mann@hotmail.com&name=Tom' http://127.0.0.1:8000/subscriptions
 ```
 
-#### Option 2
-
-In one console:
+To check the subscription handler:
 
 ```bash
-cd app
-docker build --tag zero2prod-app --file Dockerfile.app .
-docker build --tag zero2prod-db-init --file Dockerfile.db-init .
-docker compose up
-```
-
-In another console:
-
-```bash
-cd app
-curl --verbose http://127.0.0.1:8000/health_check
-curl --verbose --include --request POST --data \
-    'email=thomas_mann@hotmail.com&name=Tom' http://127.0.0.1:8000/subscriptions
-```
-
-In another console:
-
-```bash
-cd app
-docker compose down
-
-docker compose down --volumes
+curl --verbose --include --request POST \
+    --data 'email=thomas_mann@hotmail.com&name=Tom' \
+    http://127.0.0.1:8000/subscriptions
 ```
