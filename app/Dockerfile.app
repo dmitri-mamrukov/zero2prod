@@ -1,6 +1,6 @@
-FROM lukemathwalker/cargo-chef:latest-rust-1.83.0-bullseye AS chef
+FROM lukemathwalker/cargo-chef:latest-rust-1.85.0-bookworm AS chef
 WORKDIR /app
-RUN apt update && apt install lld clang --yes
+RUN apt-get update && apt-get install lld clang --yes
 
 FROM chef AS planner
 COPY . .
@@ -14,12 +14,12 @@ COPY . .
 ENV SQLX_OFFLINE=true
 RUN cargo build --release --bin zero2prod
 
-FROM debian:bullseye-slim AS runtime
+FROM debian:bookworm-slim AS runtime
 WORKDIR /app
-RUN apt update --yes \
-    && apt install --yes --no-install-recommends openssl ca-certificates \
-    && apt autoremove --yes \
-    && apt clean --yes \
+RUN apt-get update --yes \
+    && apt-get install --yes --no-install-recommends openssl ca-certificates \
+    && apt-get autoremove --yes \
+    && apt-get clean --yes \
     && rm --recursive --force /var/lib/apt/lists/*
 COPY --from=builder /app/target/release/zero2prod zero2prod
 COPY configuration configuration
