@@ -12,15 +12,12 @@ async fn main() -> Result<(), std::io::Error> {
         get_tracing_subscriber("zero2prod".to_string(), "info".to_string(), std::io::stdout);
     init_tracing_subscriber(subscriber);
 
-    let configuration = get_configuration().expect("Failed to read configuration");
+    let config = get_configuration().expect("Failed to read configuration");
     let connection_pool = PgPoolOptions::new()
         .acquire_timeout(std::time::Duration::from_secs(2))
-        .connect_lazy(configuration.database.connection_string().expose_secret())
+        .connect_lazy(config.database.connection_string().expose_secret())
         .expect("Failed to create Postgres connection pool");
-    let address = format!(
-        "{}:{}",
-        configuration.application.host, configuration.application.port
-    );
+    let address = format!("{}:{}", config.application.host, config.application.port);
     let listener = TcpListener::bind(address)?;
 
     run(listener, connection_pool)?.await
